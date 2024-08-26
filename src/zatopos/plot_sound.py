@@ -1,5 +1,5 @@
 import time
-from worker_agent import CH_NUM, WorkerAgentSerial
+from worker_agent import NUM_MIC_CHS, WorkerAgentSerial
 import matplotlib.pyplot as plt
 import matplotlib.animation
 import numpy as np
@@ -13,13 +13,13 @@ if __name__ == "__main__":
 
     fig = plt.figure()
     x = np.arange(SOUND_LENGTH)
-    y = np.ndarray((CH_NUM, SOUND_LENGTH), dtype=np.int16)
+    y = np.ndarray((NUM_MIC_CHS, SOUND_LENGTH), dtype=np.int16)
 
     def update_func(frame, x):
         plt.cla()
         plt.ylim(0,1100)
         y = agent.read_sound(SOUND_LENGTH)
-        for ch in range(CH_NUM):
+        for ch in range(NUM_MIC_CHS):
             plt.plot(x, y[ch])
 
     fanim = matplotlib.animation.FuncAnimation(

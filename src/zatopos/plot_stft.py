@@ -1,6 +1,6 @@
 import time
 import scipy.fft
-from worker_agent import SOUND_DEPTH, CH_NUM, WorkerAgentSerial
+from worker_agent import SOUND_DEPTH, NUM_MIC_CHS, WorkerAgentSerial
 import matplotlib.pyplot as plt
 import matplotlib.animation
 import numpy as np
@@ -19,7 +19,7 @@ if __name__ == "__main__":
         plt.cla()
         plt.ylim(0,1100)
         y = agent.read_sound()
-        for ch in range(CH_NUM):
+        for ch in range(NUM_MIC_CHS):
             plt.plot(x, y[ch])
 
     fanim = matplotlib.animation.FuncAnimation(

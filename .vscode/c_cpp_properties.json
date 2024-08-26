@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${env:LIBUSB_INCLUDE_PATH}",
+                "${workspaceFolder}/c/include"
+            ]
+        }
+    ],
+    "version": 4
+}
