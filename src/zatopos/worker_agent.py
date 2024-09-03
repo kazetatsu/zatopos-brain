@@ -2,13 +2,14 @@ import numpy as np
 import serial
 import os
 import ctypes
+import subprocess
 
 NUM_MIC_CHS = 6
 SOUND_DEPTH = 64
 SOUND_BUF_LEN = NUM_MIC_CHS * SOUND_DEPTH
 DATA_BYTE = 4 # how many bytes per one value
 
-LIBZATOPOS_PATH = os.path.dirname(__file__) + "../../c/build/libzatopos.so"
+LIBZATOPOS_PATH = os.path.dirname(__file__) + "/../../c/build/libzatopos.so"
 
 class WorkerAgentBase:
     def __init__(self):
@@ -62,13 +63,13 @@ class WorkerAgentSerial(WorkerAgentBase, serial.Serial):
 
         return x
 
+
 class WorkerAgentUSB(WorkerAgentBase):
     def __init__(self, bus_no, dev_addr):
         WorkerAgentBase.__init__(self)
         self.libzatopos = ctypes.cdll.LoadLibrary(LIBZATOPOS_PATH)
 
-        self.receiver = self.libzatopos.receiver_malloc()
-        self.receiver = ctypes.c_void_p(self.receiver)
+        self.receiver = ctypes.c_void_p(self.libzatopos.receiver_malloc())
 
         ret = self.libzatopos.receiver_init(self.receiver, bus_no, dev_addr)
 
@@ -76,15 +77,36 @@ class WorkerAgentUSB(WorkerAgentBase):
             self.libzatopos.receiver_delete(self.receiver)
             raise ValueError()
 
-        self.sound = (ctypes.c_ushort * SOUND_BUF_LEN)()
+        self.sound_buf = (ctypes.c_ushort * SOUND_BUF_LEN)()
         self.libzatopos.receiver_get_data.argtypes = (ctypes.c_void_p, (ctypes.c_ushort * SOUND_BUF_LEN))
 
 
-    def read_sound(self, length:int) -> np.ndarray:
+    def __del__(self):
+        self.libzatopos.receiver_delete(self.receiver)
+
+
+    def read_sound(self) -> np.ndarray:
         ret = self.libzatopos.receiver_receive(self.receiver)
         if ret != 0:
-            self.libzatopos.receiver_delete(self.receiver)
-            raise ValueError()
+            raise ValueError("%x" % ret)
 
-        self.libzatopos.receiver_get_data(self.receiver, self.sound)
-        self.sound = np.ctypeslib.as_array(self.sound).reshape((NUM_MIC_CHS, SOUND_DEPTH))
+        self.libzatopos.receiver_get_data(self.receiver, self.sound_buf)
+        sound = np.ctypeslib.as_array(self.sound_buf).astype(np.int16).reshape((SOUND_DEPTH, NUM_MIC_CHS)).T
+
+        return sound
+
+
+def get_worker_agent() -> WorkerAgentBase:
+    ret_lsusb = subprocess.run("lsusb | grep kazetatsu", shell=True, stdout=subprocess.PIPE)
+    if ret_lsusb.stdout is None:
+        raise Exception("subprocess error")
+
+    ss = ret_lsusb.stdout.decode().splitlines()
+
+    if len(ss) == 0:
+        raise Exception("no device")
+
+    cs = ss[0].split(' ')
+    bus_no = int(cs[1])
+    dev_addr = int(cs[3][0:3])
+    return WorkerAgentUSB(bus_no, dev_addr)

@@ -1,5 +1,6 @@
-#include <stdio.h>
+// #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <libusb.h>
 
 #include "receiver.h"
@@ -25,7 +26,7 @@ int receiver_init(receiver_t *receiver, unsigned char bus_no, unsigned char dev_
 
     libusb_init(&ctx);
 
-    int list_len = libusb_get_device_list(receiver->ctx, &list);
+    int list_len = libusb_get_device_list(ctx, &list);
 
     for (unsigned char i = 0; i < list_len; i++) {
         device = list[i];
@@ -43,14 +44,14 @@ int receiver_init(receiver_t *receiver, unsigned char bus_no, unsigned char dev_
                 libusb_free_device_list(list, 1);
             } else {
                 libusb_free_device_list(list, 1);
-                libusb_exit(receiver->ctx);
+                libusb_exit(ctx);
             }
             return ret;
         }
     }
 
     libusb_free_device_list(list, 1);
-    libusb_exit(receiver->ctx);
+    libusb_exit(ctx);
     return LIBUSB_ERROR_NO_DEVICE;
 }
 
@@ -90,18 +91,6 @@ unsigned int receiver_receive(receiver_t *receiver) {
         return ret;
     }
 
-    // Receive record start time of sound buffer
-    unsigned int start_time;
-    int ret_stat = libusb_bulk_transfer(receiver->handle, LIBUSB_ENDPOINT_IN | 1, start_time, 4, &actual_length, 2000);
-    if (ret_stat != 0) {
-        libusb_release_interface(receiver->handle, 0);
-
-        ret |= 0x02 << 24;
-        ret |= (unsigned int)(-1 * ret_stat) << 16;
-        ret |= actual_length;
-        return ret;
-    }
-
     // Receive sound buffer
     unsigned char *buf = (unsigned char*)receiver->sound_buf;
     unsigned short offset = 0;
@@ -129,15 +118,20 @@ unsigned int receiver_receive(receiver_t *receiver) {
             return ret;
         }
 
+        // uint16_t *dat = (uint16_t*)buf;
+        // if (dat[0] & 0xf000) {
+        // }
+
         buf += data_size;
         offset += data_size;
     } while (offset < SOUND_BUF_SIZE);
 
     libusb_release_interface(receiver->handle, 0);
+
     return 0;
 }
 
 void receiver_get_data(receiver_t *receiver, unsigned short *buf) {
-    buf = receiver->sound_buf;
+    memcpy(buf, receiver->sound_buf, SOUND_BUF_SIZE);
     return;
 }
