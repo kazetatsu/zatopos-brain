@@ -1,4 +1,4 @@
-SRCS   = src/receiver.c
+SRCS   = src/worker_agent.c
 OBJS   = $(patsubst src/%.c, build/%.so, $(SRCS))
 TARGET = build/libzatopos.so
 

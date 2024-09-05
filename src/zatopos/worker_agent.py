@@ -4,9 +4,8 @@ import os
 import ctypes
 import subprocess
 
-NUM_MIC_CHS = 6
-SOUND_DEPTH = 64
-SOUND_BUF_LEN = NUM_MIC_CHS * SOUND_DEPTH
+from sound import *
+
 DATA_BYTE = 4 # how many bytes per one value
 
 LIBZATOPOS_PATH = os.path.dirname(__file__) + "/../../c/build/libzatopos.so"
@@ -69,28 +68,28 @@ class WorkerAgentUSB(WorkerAgentBase):
         WorkerAgentBase.__init__(self)
         self.libzatopos = ctypes.cdll.LoadLibrary(LIBZATOPOS_PATH)
 
-        self.receiver = ctypes.c_void_p(self.libzatopos.receiver_malloc())
+        self.c_agent = ctypes.c_void_p(self.libzatopos.worker_agent_malloc())
 
-        ret = self.libzatopos.receiver_init(self.receiver, bus_no, dev_addr)
+        ret = self.libzatopos.worker_agent_init(self.c_agent, bus_no, dev_addr)
 
         if ret != 0:
-            self.libzatopos.receiver_delete(self.receiver)
+            self.libzatopos.worker_agent_delete(self.c_agent)
             raise ValueError()
 
         self.sound_buf = (ctypes.c_ushort * SOUND_BUF_LEN)()
-        self.libzatopos.receiver_get_data.argtypes = (ctypes.c_void_p, (ctypes.c_ushort * SOUND_BUF_LEN))
+        self.libzatopos.worker_agent_copy_sound.argtypes = (ctypes.c_void_p, (ctypes.c_ushort * SOUND_BUF_LEN))
 
 
     def __del__(self):
-        self.libzatopos.receiver_delete(self.receiver)
+        self.libzatopos.worker_agent_delete(self.c_agent)
 
 
     def read_sound(self) -> np.ndarray:
-        ret = self.libzatopos.receiver_receive(self.receiver)
+        ret = self.libzatopos.worker_agent_receive(self.c_agent)
         if ret != 0:
             raise ValueError("%x" % ret)
 
-        self.libzatopos.receiver_get_data(self.receiver, self.sound_buf)
+        self.libzatopos.worker_agent_copy_sound(self.c_agent, self.sound_buf)
         sound = np.ctypeslib.as_array(self.sound_buf).astype(np.int16).reshape((SOUND_DEPTH, NUM_MIC_CHS)).T
 
         return sound
