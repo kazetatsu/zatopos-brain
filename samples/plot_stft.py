@@ -1,6 +1,6 @@
 import time
 import scipy.fft
-from worker_agent import SOUND_DEPTH, NUM_MIC_CHS, WorkerAgentSerial
+from zatopos import SOUND_DEPTH, NUM_MIC_CHS, WorkerAgentSerial
 import matplotlib.pyplot as plt
 import matplotlib.animation
 import numpy as np

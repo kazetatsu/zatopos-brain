@@ -1,6 +1,6 @@
 import time
 import datetime
-from worker_agent import NUM_MIC_CHS, SOUND_DEPTH, get_worker_agent
+from zatopos import NUM_MIC_CHS, SOUND_DEPTH, get_worker_agent
 import matplotlib.pyplot as plt
 import matplotlib.animation
 import numpy as np

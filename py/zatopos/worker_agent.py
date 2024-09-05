@@ -1,14 +1,15 @@
+import sys
 import numpy as np
 import serial
 import os
 import ctypes
 import subprocess
 
-from sound import *
+from .sound import *
 
 DATA_BYTE = 4 # how many bytes per one value
 
-LIBZATOPOS_PATH = os.path.dirname(__file__) + "/../../c/build/libzatopos.so"
+LIBZATOPOS_PATH = os.path.join(sys.prefix, "lib", "libzatopos.so")
 
 class WorkerAgentBase:
     def __init__(self):

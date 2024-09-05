@@ -1,0 +1,6 @@
+include README.md
+include LICENSE
+include requirements.txt
+graft c/src
+graft c/include
+include c/Makefile
