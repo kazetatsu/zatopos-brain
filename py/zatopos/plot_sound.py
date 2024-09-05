@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation
 import numpy as np
 
-READ_TIMES = 8
+READ_TIMES = 5
 SOUND_LEN = READ_TIMES * SOUND_DEPTH
 
 
