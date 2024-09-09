@@ -13,20 +13,20 @@ if __name__ == "__main__":
 
     libzatopos = cdll.LoadLibrary(LIBZATOPOS_PATH)
 
-    libzatopos.worker_agent_malloc.argtypes = ()
-    libzatopos.worker_agent_malloc.restype  = c_void_p
+    libzatopos.ear_agent_malloc.argtypes = ()
+    libzatopos.ear_agent_malloc.restype  = c_void_p
 
-    libzatopos.worker_agent_init.argtypes = (c_void_p, c_ubyte, c_ubyte)
-    libzatopos.worker_agent_init.restype  = c_int
+    libzatopos.ear_agent_init.argtypes = (c_void_p, c_ubyte, c_ubyte)
+    libzatopos.ear_agent_init.restype  = c_int
 
-    libzatopos.worker_agent_delete.argtypes = (c_void_p,)
-    libzatopos.worker_agent_delete.restype  = None
+    libzatopos.ear_agent_delete.argtypes = (c_void_p,)
+    libzatopos.ear_agent_delete.restype  = None
 
-    libzatopos.worker_agent_receive.argtypes = (c_void_p,)
-    libzatopos.worker_agent_receive.restype  = c_uint
+    libzatopos.ear_agent_receive.argtypes = (c_void_p,)
+    libzatopos.ear_agent_receive.restype  = c_uint
 
-    libzatopos.worker_agent_copy_sound.argtypes = (c_void_p, (c_ushort * (NUM_MIC_CHS * SOUND_DEPTH)))
-    libzatopos.worker_agent_copy_sound.restype  = None
+    libzatopos.ear_agent_copy_sound.argtypes = (c_void_p, (c_ushort * (NUM_MIC_CHS * SOUND_DEPTH)))
+    libzatopos.ear_agent_copy_sound.restype  = None
 
     # locator_t* locator_malloc(void)
     libzatopos.locator_malloc.argtypes = ()

@@ -3,20 +3,20 @@
 #include <string.h>
 #include <libusb.h>
 
-#include "worker_agent.h"
+#include "ear_agent.h"
 
-struct worker_agent{
+struct ear_agent{
     libusb_context *ctx;
     libusb_device *device;
     libusb_device_handle *handle;
     unsigned short *sound_buf;
 };
 
-worker_agent_t *worker_agent_malloc(void) {
-    return calloc(1, sizeof(worker_agent_t));
+ear_agent_t *ear_agent_malloc(void) {
+    return calloc(1, sizeof(ear_agent_t));
 }
 
-int worker_agent_init(worker_agent_t *agent, unsigned char bus_no, unsigned char dev_addr) {
+int ear_agent_init(ear_agent_t *agent, unsigned char bus_no, unsigned char dev_addr) {
     libusb_context *ctx;
     libusb_device **list;
     struct libusb_device_descriptor desc;
@@ -55,7 +55,7 @@ int worker_agent_init(worker_agent_t *agent, unsigned char bus_no, unsigned char
     return LIBUSB_ERROR_NO_DEVICE;
 }
 
-void worker_agent_delete(worker_agent_t *agent) {
+void ear_agent_delete(ear_agent_t *agent) {
     if (agent->sound_buf != NULL) {
         free(agent->sound_buf);
     }
@@ -68,7 +68,7 @@ void worker_agent_delete(worker_agent_t *agent) {
     free(agent);
 }
 
-unsigned int worker_agent_receive(worker_agent_t *agent) {
+unsigned int ear_agent_receive(ear_agent_t *agent) {
     unsigned int ret = 0;
 
     int ret_intf = libusb_claim_interface(agent->handle, 0);
@@ -131,7 +131,7 @@ unsigned int worker_agent_receive(worker_agent_t *agent) {
     return 0;
 }
 
-void worker_agent_copy_sound(worker_agent_t *agent, unsigned short *dst) {
+void ear_agent_copy_sound(ear_agent_t *agent, unsigned short *dst) {
     memcpy(dst, agent->sound_buf, SOUND_BUF_SIZE);
     return;
 }
