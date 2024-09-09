@@ -1,5 +1,5 @@
-SRCS   = src/worker_agent.c
-OBJS   = $(patsubst src/%.c, build/%.so, $(SRCS))
+LOCATOR_TYPE = cpu
+OBJS   = build/locator.o build/worker_agent.o
 TARGET = build/libzatopos.so
 
 all: $(TARGET)
@@ -7,9 +7,16 @@ all: $(TARGET)
 $(TARGET): $(OBJS)
 	gcc -shared -fPIC -o $@ $^ -lusb-1.0
 
-$(OBJS): $(SRCS)
-	mkdir -p build
-	gcc -shared -fPIC -o $@ -c $< -I/usr/include/libusb-1.0 -I./include
+build/locator.o: build/locator_$(LOCATOR_TYPE).o
+	ln -fs $(subst build/,,$<) $@
+
+build/locator_cpu.o: src/locator_cpu.c
+	@mkdir -p build
+	gcc -o $@ -c $< -I./include
+
+build/worker_agent.o: src/worker_agent.c
+	@mkdir -p build
+	gcc -o $@ -c $< -I/usr/include/libusb-1.0 -I./include
 
 clean:
 	rm -r build
