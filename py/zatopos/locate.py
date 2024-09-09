@@ -3,10 +3,11 @@ import numpy as np
 from .worker_agent import WorkerAgentBase, NUM_MIC_CHS, SOUND_DEPTH
 
 def locate(worker_agent:WorkerAgentBase, sampling_time:float, mic_pos:np.ndarray):
-    x_ = worker_agent.read_sound()
-    X = np.ndarray((NUM_MIC_CHS, SOUND_DEPTH), dtype=np.complex64)
-    for ch in range(NUM_MIC_CHS):
-        X[ch] = np.fft.fft(x_[ch]).astype(np.complex64)
+    x = worker_agent.read_sound(dtype=np.float32)
+    # type: np.ndarray
+    #   shape: (NUM_MIC_CHS, SOUND_DEPTH)
+    #   dtype: np.complex64
+    X = np.fft.fft(x)
     R = np.einsum(
         "if,jf->fij",
         X, X.conjugate()
@@ -17,10 +18,3 @@ def locate(worker_agent:WorkerAgentBase, sampling_time:float, mic_pos:np.ndarray
     eigval, eigvec = np.linalg.eigh(R)
     eigval = eigval[:, ::-1] # descending order
     eigvec = eigvec[:, ::-1, :] # same order as eigval
-
-    E = eigvec[:,1:,:]
-    c = np.float32(340)
-    d = np.float32(0.06)
-    tau = (1j * d / c) * np.exp(2.0 * np.pi * np.arange(NUM_MIC_CHS))
-
-

@@ -14,7 +14,7 @@ LIBZATOPOS_PATH = os.path.join(sys.prefix, "lib", "libzatopos.so")
 class WorkerAgentBase:
     def __init__(self):
         pass
-    def read_sound(self) -> np.ndarray:
+    def read_sound(self, dtype=np.int16) -> np.ndarray:
         pass
 
 
@@ -24,7 +24,7 @@ class WorkerAgentSerial(WorkerAgentBase, serial.Serial):
         serial.Serial.__init__(self, port=port, baudrate=baudrate)
 
 
-    def read_sound(self, length:int) -> np.ndarray:
+    def read_sound(self, length:int, dtype=np.int16) -> np.ndarray:
         d = 4
 
         x = np.zeros(shape=(NUM_MIC_CHS, length), dtype=np.int16)
@@ -61,7 +61,7 @@ class WorkerAgentSerial(WorkerAgentBase, serial.Serial):
                 print(sounds)
             loop += 1
 
-        return x
+        return x.astype(np.int16)
 
 
 class WorkerAgentUSB(WorkerAgentBase):
@@ -85,13 +85,13 @@ class WorkerAgentUSB(WorkerAgentBase):
         self.libzatopos.worker_agent_delete(self.c_agent)
 
 
-    def read_sound(self) -> np.ndarray:
+    def read_sound(self, dtype=np.int16) -> np.ndarray:
         ret = self.libzatopos.worker_agent_receive(self.c_agent)
         if ret != 0:
             raise ValueError("%x" % ret)
 
         self.libzatopos.worker_agent_copy_sound(self.c_agent, self.sound_buf)
-        sound = np.ctypeslib.as_array(self.sound_buf).astype(np.int16).reshape((SOUND_DEPTH, NUM_MIC_CHS)).T
+        sound = np.ctypeslib.as_array(self.sound_buf).astype(dtype).reshape((SOUND_DEPTH, NUM_MIC_CHS)).T
 
         return sound
 
