@@ -1,8 +1,8 @@
 import numpy as np
 
-from .worker_agent import WorkerAgentBase, NUM_MIC_CHS, SOUND_DEPTH
+from .ear_agent import EarAgentBase, NUM_MIC_CHS, SOUND_DEPTH
 
-def locate(worker_agent:WorkerAgentBase, sampling_time:float, mic_pos:np.ndarray):
+def locate(worker_agent:EarAgentBase, sampling_time:float, mic_pos:np.ndarray):
     x = worker_agent.read_sound(dtype=np.float32)
     # type: np.ndarray
     #   shape: (NUM_MIC_CHS, SOUND_DEPTH)

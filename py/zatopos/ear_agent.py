@@ -11,16 +11,16 @@ DATA_BYTE = 4 # how many bytes per one value
 
 LIBZATOPOS_PATH = os.path.join(sys.prefix, "lib", "libzatopos.so")
 
-class WorkerAgentBase:
+class EarAgentBase:
     def __init__(self):
         pass
     def read_sound(self, dtype=np.int16) -> np.ndarray:
         pass
 
 
-class WorkerAgentSerial(WorkerAgentBase, serial.Serial):
+class EarAgentSerial(EarAgentBase, serial.Serial):
     def __init__(self, port, baudrate=115200):
-        WorkerAgentBase.__init__(self)
+        EarAgentBase.__init__(self)
         serial.Serial.__init__(self, port=port, baudrate=baudrate)
 
 
@@ -64,39 +64,39 @@ class WorkerAgentSerial(WorkerAgentBase, serial.Serial):
         return x.astype(np.int16)
 
 
-class WorkerAgentUSB(WorkerAgentBase):
+class EarAgentUSB(EarAgentBase):
     def __init__(self, bus_no, dev_addr):
-        WorkerAgentBase.__init__(self)
+        EarAgentBase.__init__(self)
         self.libzatopos = ctypes.cdll.LoadLibrary(LIBZATOPOS_PATH)
 
         self.c_agent = ctypes.c_void_p(self.libzatopos.worker_agent_malloc())
 
-        ret = self.libzatopos.worker_agent_init(self.c_agent, bus_no, dev_addr)
+        ret = self.libzatopos.ear_agent_init(self.c_agent, bus_no, dev_addr)
 
         if ret != 0:
-            self.libzatopos.worker_agent_delete(self.c_agent)
+            self.libzatopos.ear_agent_delete(self.c_agent)
             raise ValueError()
 
         self.sound_buf = (ctypes.c_ushort * SOUND_BUF_LEN)()
-        self.libzatopos.worker_agent_copy_sound.argtypes = (ctypes.c_void_p, (ctypes.c_ushort * SOUND_BUF_LEN))
+        self.libzatopos.ear_agent_copy_sound.argtypes = (ctypes.c_void_p, (ctypes.c_ushort * SOUND_BUF_LEN))
 
 
     def __del__(self):
-        self.libzatopos.worker_agent_delete(self.c_agent)
+        self.libzatopos.ear_agent_delete(self.c_agent)
 
 
     def read_sound(self, dtype=np.int16) -> np.ndarray:
-        ret = self.libzatopos.worker_agent_receive(self.c_agent)
+        ret = self.libzatopos.ear_agent_receive(self.c_agent)
         if ret != 0:
             raise ValueError("%x" % ret)
 
-        self.libzatopos.worker_agent_copy_sound(self.c_agent, self.sound_buf)
+        self.libzatopos.ear_agent_copy_sound(self.c_agent, self.sound_buf)
         sound = np.ctypeslib.as_array(self.sound_buf).astype(dtype).reshape((SOUND_DEPTH, NUM_MIC_CHS)).T
 
         return sound
 
 
-def get_worker_agent() -> WorkerAgentBase:
+def get_ear_agent() -> EarAgentBase:
     ret_lsusb = subprocess.run("lsusb | grep kazetatsu", shell=True, stdout=subprocess.PIPE)
     if ret_lsusb.stdout is None:
         raise Exception("subprocess error")
@@ -109,4 +109,4 @@ def get_worker_agent() -> WorkerAgentBase:
     cs = ss[0].split(' ')
     bus_no = int(cs[1])
     dev_addr = int(cs[3][0:3])
-    return WorkerAgentUSB(bus_no, dev_addr)
+    return EarAgentUSB(bus_no, dev_addr)
