@@ -1,6 +1,6 @@
 import time
 import datetime
-from zatopos import NUM_MIC_CHS, SOUND_DEPTH, get_worker_agent
+from zatopos import NUM_MIC_CHS, SOUND_DEPTH, get_ear_agent
 import matplotlib.pyplot as plt
 import matplotlib.animation
 import numpy as np
@@ -10,7 +10,7 @@ SOUND_LEN = READ_TIMES * SOUND_DEPTH
 
 
 if __name__ == "__main__":
-    agent = get_worker_agent()
+    agent = get_ear_agent()
 
     time.sleep(1.0)
 

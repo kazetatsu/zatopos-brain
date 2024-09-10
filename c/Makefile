@@ -5,7 +5,7 @@ TARGET = build/libzatopos.so
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	gcc -shared -fPIC -o $@ $^ -lusb-1.0
+	gcc -shared -fPIC -o $@ $^ -lusb-1.0 -lm
 
 build/locator.o: build/locator_$(LOCATOR_TYPE).o
 	ln -fs $(subst build/,,$<) $@
