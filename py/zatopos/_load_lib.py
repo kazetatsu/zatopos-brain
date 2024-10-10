@@ -34,6 +34,7 @@ def load_libzatopos() -> CDLL:
     libzatopos.locator_delete.argtypes = (c_void_p,)
     libzatopos.locator_delete.restype  = None
     # unsigned int locator_set_frequency(locator_t* locator, float* freq, int len)
+    libzatopos.locator_set_frequency.argtypes = (c_void_p, c_void_p, c_int)
     libzatopos.locator_set_frequency.restype  = c_uint
     # unsigned int locator_set_resolution(locator_t* locator, int x, int y)
     libzatopos.locator_set_resolution.argtypes = (c_void_p, c_int, c_int)
@@ -41,7 +42,8 @@ def load_libzatopos() -> CDLL:
     # unsigned int locator_set_distance(locator_t* locator, float x, float y)
     libzatopos.locator_set_distance.argtypes = (c_void_p, c_float, c_float)
     libzatopos.locator_set_distance.restype  = c_uint
-    # unsigned int locator_locate(locator_t* locator, float ***E_re, float ***E_im, float **result)
+    # unsigned int locator_locate(locator_t* locator, float *E, float *result)
+    libzatopos.locator_locate.argtypes = (c_void_p, c_void_p, c_void_p)
     libzatopos.locator_locate.restype  = c_uint
 
     return libzatopos

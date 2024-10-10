@@ -14,6 +14,6 @@ void locator_delete(locator_t* locator);
 unsigned int locator_set_frequency(locator_t* locator, float* freq, int len);
 unsigned int locator_set_resolution(locator_t* locator, int x, int y);
 unsigned int locator_set_distance(locator_t* locator, float x, float y);
-unsigned int locator_locate(locator_t* locator, float ***E_re, float ***E_im, float **result);
+unsigned int locator_locate(locator_t* locator, float *E, float *result);
 
 #endif

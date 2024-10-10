@@ -1,4 +1,4 @@
-// #include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -33,6 +33,8 @@ unsigned int locator_init(locator_t* locator) {
 }
 
 void locator_delete(locator_t* locator) {
+    if (locator->freq != NULL)
+        free(locator->freq);
     free(locator);
     // printf("deleted\n");
 }
@@ -40,6 +42,9 @@ void locator_delete(locator_t* locator) {
 unsigned int locator_set_frequency(locator_t* locator, float* freq, int len) {
     locator->freq = freq;
     locator->freq_len = len;
+    locator->freq = (float*)malloc(len * sizeof(float));
+    for (int f = 0; f < len; f++)
+        locator->freq[f] = freq[f];
     // printf("set freq: len=%d\n", locator->freq_len);
     return 0;
 }
@@ -58,10 +63,15 @@ unsigned int locator_set_distance(locator_t* locator, float x, float y) {
     return 0;
 }
 
-unsigned int locator_locate(locator_t* locator, float ***E_re, float ***E_im, float **result) {
+unsigned int locator_locate(locator_t* locator, float *E, float *result) {
     // steering vector
     float v_re[NUM_MIC_CHS];
     float v_im[NUM_MIC_CHS];
+
+    int stride_f = NUM_MIC_CHS * NUM_MIC_CHS * 2;
+    int stride_c = NUM_MIC_CHS * 2;
+    printf("C lang: f[0] = %f\n", locator->freq[0]);
+    printf("C lang: E[0][0][0] = %f + %fj\n", E[0], E[1]);
 
     for (int ix = 0; ix < locator->res_x; ix++) {
         for (int iy = 0; iy < locator->res_y; iy++) {
@@ -94,14 +104,15 @@ unsigned int locator_locate(locator_t* locator, float ***E_re, float ***E_im, fl
                     u_re = 0.0f;
                     u_im = 0.0f;
                     for (unsigned char r = 0; r < NUM_MIC_CHS; r++) {
-                        u_re += v_re[r] * E_re[i][c][r] - v_im[r] * E_im[i][c][r];
-                        u_im += v_re[r] * E_im[i][c][r] + v_im[r] * E_re[i][c][r];
+                        int pibot = i * stride_f + c * stride_c + r * 2;
+                        u_re += v_re[r] * E[pibot    ] - v_im[r] * E[pibot + 1];
+                        u_im += v_re[r] * E[pibot + 1] + v_im[r] * E[pibot    ];
                     }
                     res += u_re * u_re + u_im * u_im;
                 }
 
                 // calculate average
-                result[ix][iy] += res;
+                result[ix * locator->res_y + iy] += res;
             }
         }
     }

@@ -4,7 +4,6 @@ import numpy as np
 
 from .sound import *
 from ._load_lib import load_libzatopos
-from ._ctypes_numpy_convert import _np2c_2darr, _np2c_3darr
 
 class Locator:
     def __init__(self,
@@ -33,16 +32,14 @@ class Locator:
         )
 
         if freq is None:
-            c_freq = \
-                np.fft.fftfreq(n=SOUND_DEPTH, d=SOUND_SAMPLING_TIME)\
-                .ctypes.data_as(POINTER(c_float))
+            _freq = np.fft.fftfreq(n=SOUND_DEPTH, d=SOUND_SAMPLING_TIME).astype(np.float32)
             c_freq_len = c_int(SOUND_DEPTH)
         else:
-            c_freq = freq.ctypes.data_as(POINTER(c_float))
+            _freq = freq.astype(np.float32)
             c_freq_len = c_int(freq.shape[0])
         self.libzatopos.locator_set_frequency(
             self.c_locator,
-            c_freq, c_freq_len
+            c_void_p(_freq.__array_interface__["data"][0]), c_freq_len
         )
 
 
@@ -55,11 +52,13 @@ class Locator:
         assert len(shape) == 3
         assert shape[1] == NUM_MIC_CHS
         assert shape[2] == NUM_MIC_CHS
-        ss_type = np.ctypeslib.ndpointer(dtype=np.uintp, ndim=2)
-        c_signal_spaces_re = _np2c_3darr(signal_spaces.real.astype(np.float32))
-        c_signal_spaces_im = _np2c_3darr(signal_spaces.imag.astype(np.float32))
+        assert signal_spaces.dtype == np.complex64
+
         result = np.zeros(shape=(self.resolution[0], self.resolution[1]), dtype=np.float32)
-        c_result = _np2c_2darr(result) # c_result and result share memory
-        # ↓で止まる
-        self.libzatopos.locator_locate(self.c_locator, c_signal_spaces_re, c_signal_spaces_im, c_result)
+
+        self.libzatopos.locator_locate(
+            self.c_locator,
+            c_void_p(signal_spaces.__array_interface__["data"][0]),
+            c_void_p(result.__array_interface__["data"][0])
+        )
         return result
