@@ -1,4 +1,4 @@
-#include <stdio.h>
+// #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -70,8 +70,6 @@ unsigned int locator_locate(locator_t* locator, float *E, float *result) {
 
     int stride_f = NUM_MIC_CHS * NUM_MIC_CHS * 2;
     int stride_c = NUM_MIC_CHS * 2;
-    printf("C lang: f[0] = %f\n", locator->freq[0]);
-    printf("C lang: E[0][0][0] = %f + %fj\n", E[0], E[1]);
 
     for (int ix = 0; ix < locator->res_x; ix++) {
         for (int iy = 0; iy < locator->res_y; iy++) {
