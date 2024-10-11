@@ -40,7 +40,7 @@ unsigned int ear_agent_init(ear_agent_t *agent, unsigned char bus_no, unsigned c
                 agent->ctx = ctx;
                 agent->device = device;
                 agent->handle = handle;
-                agent->sound_buf = (unsigned short*)malloc(SOUND_BUF_SIZE);
+                agent->sound_buf = (unsigned short*)malloc(EAR_BUFFER_SIZE);
                 libusb_free_device_list(list, 1);
             } else {
                 libusb_free_device_list(list, 1);
@@ -95,7 +95,7 @@ unsigned int ear_agent_receive(ear_agent_t *agent) {
     unsigned char *buf = (unsigned char*)agent->sound_buf;
     unsigned short offset = 0;
     do {
-        unsigned int data_size = SOUND_BUF_SIZE - offset;
+        unsigned int data_size = EAR_BUFFER_SIZE - offset;
         if (data_size > USB_MAX_DATA_SIZE) {
             data_size = USB_MAX_DATA_SIZE;
         }
@@ -124,7 +124,7 @@ unsigned int ear_agent_receive(ear_agent_t *agent) {
 
         buf += data_size;
         offset += data_size;
-    } while (offset < SOUND_BUF_SIZE);
+    } while (offset < EAR_BUFFER_SIZE);
 
     libusb_release_interface(agent->handle, 0);
 
@@ -132,6 +132,6 @@ unsigned int ear_agent_receive(ear_agent_t *agent) {
 }
 
 unsigned int ear_agent_copy_sound(ear_agent_t *agent, unsigned short *dst) {
-    memcpy(dst, agent->sound_buf, SOUND_BUF_SIZE);
+    memcpy(dst, agent->sound_buf, EAR_BUFFER_SIZE);
     return 0;
 }

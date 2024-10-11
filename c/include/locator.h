@@ -5,6 +5,8 @@
 #ifndef _LOCATE_H
 #define _LOCATE_H
 
+#include "consts.h"
+
 struct locator;
 typedef struct locator locator_t;
 

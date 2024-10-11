@@ -3,8 +3,15 @@ import subprocess
 
 import numpy as np
 
-from .sound import *
 from ._load_lib import load_libzatopos
+
+
+EAR_NUM_MICS = 6
+EAR_WINDOW_LEN = 64
+EAR_BUFFER_LEN = EAR_NUM_MICS * EAR_WINDOW_LEN
+EAR_SAMPLING_RATE = 2000 # [Hz]
+EAR_WINDOW_TIME = EAR_WINDOW_LEN / EAR_SAMPLING_RATE
+
 
 class EarAgent:
     def __init__(self, bus_no, dev_addr):
@@ -18,7 +25,7 @@ class EarAgent:
             self.libzatopos.ear_agent_delete(self.c_agent)
             raise ValueError()
 
-        self.sound_buf = np.ndarray(shape=(SOUND_BUF_LEN,), dtype=np.uint16)
+        self.sound_buf = np.ndarray(shape=(EAR_BUFFER_LEN,), dtype=np.uint16)
         self.c_sound_buf = c_void_p(self.sound_buf.__array_interface__["data"][0])
 
 
@@ -32,7 +39,7 @@ class EarAgent:
             raise ValueError("%x" % ret)
 
         self.libzatopos.ear_agent_copy_sound(self.c_agent, self.c_sound_buf)
-        sound = self.sound_buf.reshape((SOUND_DEPTH, NUM_MIC_CHS)).T
+        sound = self.sound_buf.reshape((EAR_WINDOW_LEN, EAR_NUM_MICS)).T
 
         return sound.astype(dtype)
 

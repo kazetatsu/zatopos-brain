@@ -1,7 +1,7 @@
 #ifndef _WORKER_AGENT_C
 #define _WORKER_AGENT_C
 
-#include "sound.h"
+#include "consts.h"
 
 #define USB_MAX_DATA_SIZE 60
 

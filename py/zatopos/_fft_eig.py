@@ -1,5 +1,7 @@
 import numpy as np
 
+from ._ear_agent import EAR_WINDOW_LEN, EAR_WINDOW_TIME
+
 def get_signal_spaces(sounds:np.ndarray, freq_filter:np.ndarray = None):
     assert len(sounds.shape) == 3
 
@@ -11,7 +13,7 @@ def get_signal_spaces(sounds:np.ndarray, freq_filter:np.ndarray = None):
     if freq_filter is not None:
         X = X[:,:,freq_filter]
     else:
-        X = X[:, :, 1:np.ceil((X.shape[2] - 1) / 2)]
+        X = X[:, :, 1:np.uint16(np.ceil(X.shape[2] / 2))]
 
     R = np.einsum(
         "kif,kjf->kfij",
@@ -25,27 +27,16 @@ def get_signal_spaces(sounds:np.ndarray, freq_filter:np.ndarray = None):
     return eigvec.copy()
 
 
-def get_freq_filter(min_freq:float, max_freq:float, sampling_time:float = None, sampling_depth:int = None):
-    assert sampling_time > 0
-    assert sampling_depth > 0
-
-    if sampling_time is not None:
-        l = sampling_time
-    else:
-        l = SOUND_SAMPLING_TIME
-
-    if sampling_depth is not None:
-        n = sampling_depth
-    else:
-        n = SOUND_DEPTH
+def get_freq_filter(min_freq:float, max_freq:float):
+    coef = EAR_WINDOW_LEN * EAR_WINDOW_LEN / EAR_WINDOW_TIME
 
     min_f = np.max(
-        np.ceil(n * n * min_freq / l),
+        np.ceil(coef * min_freq),
         0
     )
     max_f = np.min(
-        np.floor(n * n * max_freq / l),
-        np.ceil((n - 1)/2)
+        np.floor(coef * max_freq),
+        np.ceil((EAR_WINDOW_LEN - 1)/2)
     )
 
     assert min_f <= max_f

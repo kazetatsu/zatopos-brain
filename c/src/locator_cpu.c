@@ -3,10 +3,9 @@
 #include <string.h>
 #include <math.h>
 
-#include "sound.h"
 #include "locator.h"
 
-static const float q[NUM_MIC_CHS - 1][2] = {
+static const float q[EAR_NUM_MICS - 1][2] = {
     { 0.5f,  0.86f},
     {-0.5f,  0.86f},
     {-1.0f,  0.0f},
@@ -65,11 +64,11 @@ unsigned int locator_set_distance(locator_t* locator, float x, float y) {
 
 unsigned int locator_locate(locator_t* locator, float *E, float *result) {
     // steering vector
-    float v_re[NUM_MIC_CHS];
-    float v_im[NUM_MIC_CHS];
+    float v_re[EAR_NUM_MICS];
+    float v_im[EAR_NUM_MICS];
 
-    int stride_f = NUM_MIC_CHS * NUM_MIC_CHS * 2;
-    int stride_c = NUM_MIC_CHS * 2;
+    int stride_f = EAR_NUM_MICS * EAR_NUM_MICS * 2;
+    int stride_c = EAR_NUM_MICS * 2;
 
     for (int ix = 0; ix < locator->res_x; ix++) {
         for (int iy = 0; iy < locator->res_y; iy++) {
@@ -88,7 +87,7 @@ unsigned int locator_locate(locator_t* locator, float *E, float *result) {
                 float theta = coef * px;
                 v_re[0] = cosf(theta);
                 v_im[0] = sinf(theta);
-                for (unsigned char j = 1; j < NUM_MIC_CHS; j++) {
+                for (unsigned char j = 1; j < EAR_NUM_MICS; j++) {
                     theta = q[j-1][0] * px + q[j-1][1] * py;
                     theta *= coef;
                     v_re[j] = cosf(theta);
@@ -98,10 +97,10 @@ unsigned int locator_locate(locator_t* locator, float *E, float *result) {
                 // calculate || v^T E ||^2
                 float res = 0.0f;
                 float u_re, u_im;
-                for (unsigned char c = 1; c < NUM_MIC_CHS; c++) {
+                for (unsigned char c = 1; c < EAR_NUM_MICS; c++) {
                     u_re = 0.0f;
                     u_im = 0.0f;
-                    for (unsigned char r = 0; r < NUM_MIC_CHS; r++) {
+                    for (unsigned char r = 0; r < EAR_NUM_MICS; r++) {
                         int pibot = i * stride_f + c * stride_c + r * 2;
                         u_re += v_re[r] * E[pibot    ] - v_im[r] * E[pibot + 1];
                         u_im += v_re[r] * E[pibot + 1] + v_im[r] * E[pibot    ];
