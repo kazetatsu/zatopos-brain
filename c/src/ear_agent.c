@@ -16,7 +16,7 @@ ear_agent_t *ear_agent_malloc(void) {
     return calloc(1, sizeof(ear_agent_t));
 }
 
-int ear_agent_init(ear_agent_t *agent, unsigned char bus_no, unsigned char dev_addr) {
+unsigned int ear_agent_init(ear_agent_t *agent, unsigned char bus_no, unsigned char dev_addr) {
     libusb_context *ctx;
     libusb_device **list;
     struct libusb_device_descriptor desc;
@@ -46,13 +46,13 @@ int ear_agent_init(ear_agent_t *agent, unsigned char bus_no, unsigned char dev_a
                 libusb_free_device_list(list, 1);
                 libusb_exit(ctx);
             }
-            return ret;
+            return (unsigned int)(-ret);
         }
     }
 
     libusb_free_device_list(list, 1);
     libusb_exit(ctx);
-    return LIBUSB_ERROR_NO_DEVICE;
+    return (unsigned int)(-LIBUSB_ERROR_NO_DEVICE);
 }
 
 void ear_agent_delete(ear_agent_t *agent) {
@@ -131,7 +131,7 @@ unsigned int ear_agent_receive(ear_agent_t *agent) {
     return 0;
 }
 
-void ear_agent_copy_sound(ear_agent_t *agent, unsigned short *dst) {
+unsigned int ear_agent_copy_sound(ear_agent_t *agent, unsigned short *dst) {
     memcpy(dst, agent->sound_buf, SOUND_BUF_SIZE);
-    return;
+    return 0;
 }
