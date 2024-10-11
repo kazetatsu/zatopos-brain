@@ -1,18 +1,16 @@
-import sys
-import numpy as np
-import os
-import ctypes
+from ctypes import *
 import subprocess
 
-from .sound import *
+import numpy as np
 
-LIBZATOPOS_PATH = os.path.join(sys.prefix, "lib", "libzatopos.so")
+from .sound import *
+from ._load_lib import load_libzatopos
 
 class EarAgent:
     def __init__(self, bus_no, dev_addr):
-        self.libzatopos = ctypes.cdll.LoadLibrary(LIBZATOPOS_PATH)
+        self.libzatopos = load_libzatopos()
 
-        self.c_agent = ctypes.c_void_p(self.libzatopos.ear_agent_malloc())
+        self.c_agent = self.libzatopos.ear_agent_malloc()
 
         ret = self.libzatopos.ear_agent_init(self.c_agent, bus_no, dev_addr)
 
@@ -20,8 +18,8 @@ class EarAgent:
             self.libzatopos.ear_agent_delete(self.c_agent)
             raise ValueError()
 
-        self.sound_buf = (ctypes.c_ushort * SOUND_BUF_LEN)()
-        self.libzatopos.ear_agent_copy_sound.argtypes = (ctypes.c_void_p, (ctypes.c_ushort * SOUND_BUF_LEN))
+        self.sound_buf = np.ndarray(shape=(SOUND_BUF_LEN,), dtype=np.uint16)
+        self.c_sound_buf = c_void_p(self.sound_buf.__array_interface__["data"][0])
 
 
     def __del__(self):
@@ -29,14 +27,14 @@ class EarAgent:
 
 
     def read_sound(self, dtype=np.int16) -> np.ndarray:
-        ret = self.libzatopos.ear_agent_receive(self.c_agent)
-        if ret != 0:
+        ret:c_uint = self.libzatopos.ear_agent_receive(self.c_agent)
+        if ret.value != 0:
             raise ValueError("%x" % ret)
 
-        self.libzatopos.ear_agent_copy_sound(self.c_agent, self.sound_buf)
-        sound = np.ctypeslib.as_array(self.sound_buf).astype(dtype).reshape((SOUND_DEPTH, NUM_MIC_CHS)).T
+        self.libzatopos.ear_agent_copy_sound(self.c_agent, self.c_sound_buf)
+        sound = self.sound_buf.reshape((SOUND_DEPTH, NUM_MIC_CHS)).T
 
-        return sound
+        return sound.astype(dtype)
 
 
 def get_ear_agent() -> EarAgent:

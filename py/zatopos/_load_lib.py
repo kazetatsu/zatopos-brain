@@ -22,7 +22,7 @@ def load_libzatopos() -> CDLL:
     libzatopos.ear_agent_receive.argtypes = (c_void_p,)
     libzatopos.ear_agent_receive.restype  = c_uint
     # unsigned int ear_agent_copy_sound(ear_agent_t *agent, unsigned short *dst);
-    libzatopos.ear_agent_copy_sound.argtypes = (c_void_p, (c_ushort * (NUM_MIC_CHS * SOUND_DEPTH)))
+    libzatopos.ear_agent_copy_sound.argtypes = (c_void_p, c_void_p)
     libzatopos.ear_agent_copy_sound.restype  = c_uint
 
     # locator_t* locator_malloc(void)
