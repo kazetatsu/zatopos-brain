@@ -1,12 +1,12 @@
 import time
 import datetime
-from zatopos import NUM_MIC_CHS, SOUND_DEPTH, get_ear_agent
+from zatopos import EAR_NUM_MICS, EAR_WINDOW_LEN, get_ear_agent
 import matplotlib.pyplot as plt
 import matplotlib.animation
 import numpy as np
 
 READ_TIMES = 5
-SOUND_LEN = READ_TIMES * SOUND_DEPTH
+SOUND_LEN = READ_TIMES * EAR_WINDOW_LEN
 
 
 if __name__ == "__main__":
@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     fig = plt.figure()
     x = np.arange(SOUND_LEN)
-    y = np.ndarray((NUM_MIC_CHS, SOUND_LEN), dtype=np.int16)
+    y = np.ndarray((EAR_NUM_MICS, SOUND_LEN), dtype=np.int16)
 
     def update_func(frame, x, y):
         plt.cla()
@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
         s = datetime.datetime.now()
         for i in range(READ_TIMES):
-            y[:, i * SOUND_DEPTH : (i+1) * SOUND_DEPTH] = agent.read_sound()
+            y[:, i * EAR_WINDOW_LEN : (i+1) * EAR_WINDOW_LEN] = agent.read_sound()
             while True:
                 time.sleep(0.005)
                 e = datetime.datetime.now()
@@ -32,7 +32,7 @@ if __name__ == "__main__":
                     s = e
                     break
 
-        for ch in range(NUM_MIC_CHS):
+        for ch in range(EAR_NUM_MICS):
             plt.plot(x, y[ch])
 
     fanim = matplotlib.animation.FuncAnimation(
