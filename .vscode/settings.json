@@ -1,5 +1,5 @@
 {
     "python.analysis.extraPaths": [
-        "${workspaceFolder}/env/lib/python3.11/site-packages",
+        "${workspaceFolder}/env/lib/python3.12/site-packages",
     ]
 }
