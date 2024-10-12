@@ -2,8 +2,6 @@ from ctypes import *
 import sys
 import os
 
-from .sound import *
-
 def load_libzatopos() -> CDLL:
     path = os.path.join(sys.prefix, "lib", "libzatopos.so")
 
