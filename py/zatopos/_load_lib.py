@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2024 ShinagwaKazemaru
+# SPDX-License-Identifier: MIT License
+
 from ctypes import *
 import sys
 import os

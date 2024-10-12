@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2024 ShinagwaKazemaru
+# SPDX-License-Identifier: MIT License
+
 import numpy as np
 
 from ._ear_agent import EAR_WINDOW_LEN, EAR_WINDOW_TIME

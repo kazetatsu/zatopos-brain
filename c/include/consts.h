@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 ShinagwaKazemaru
+// SPDX-License-Identifier: MIT License
+
 #ifndef _ZATOPOS_BRAIN_CONSTS_H
 #define _ZATOPOS_BRAIN_CONSTS_H
 

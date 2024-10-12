@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2024 ShinagwaKazemaru
+# SPDX-License-Identifier: MIT License
+
 LOCATOR_TYPE = cpu
 OBJS   = build/locator.o build/ear_agent.o
 TARGET = build/libzatopos.so

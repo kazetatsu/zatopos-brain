@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2024 ShinagwaKazemaru
+// SPDX-License-Identifier: MIT License
+
 #ifndef _WORKER_AGENT_C
 #define _WORKER_AGENT_C
 
