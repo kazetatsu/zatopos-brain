@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2024 ShinagwaKazemaru
+# SPDX-License-Identifier: MIT License
+
 import os
 import sys
 import shutil
@@ -41,7 +44,7 @@ def get_requires():
 
 setup(
     name='zatopos',
-    version='0.0.0',
+    version='0.1.0',
     description='calculate position using loud footdsteps',
     classifiers=[
         'Development Status :: 3 - Alpha',
