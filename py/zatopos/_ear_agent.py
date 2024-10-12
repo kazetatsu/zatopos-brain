@@ -34,8 +34,8 @@ class EarAgent:
 
 
     def read_sound(self, dtype=np.int16) -> np.ndarray:
-        ret:c_uint = self.libzatopos.ear_agent_receive(self.c_agent)
-        if ret.value != 0:
+        ret = self.libzatopos.ear_agent_receive(self.c_agent)
+        if ret != 0:
             raise ValueError("%x" % ret)
 
         self.libzatopos.ear_agent_copy_sound(self.c_agent, self.c_sound_buf)
