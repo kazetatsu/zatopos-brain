@@ -17,34 +17,38 @@ EAR_WINDOW_TIME = EAR_WINDOW_LEN / EAR_SAMPLING_RATE
 
 
 class EarAgent:
-    def __init__(self, bus_no, dev_addr):
+    def __init__(self, bus_no:int, dev_addr:int):
         self.libzatopos = load_libzatopos()
 
         self.c_agent = self.libzatopos.ear_agent_malloc()
 
-        ret = self.libzatopos.ear_agent_init(self.c_agent, bus_no, dev_addr)
+        ret = self.libzatopos.ear_agent_init(
+            self.c_agent,
+            c_ubyte(bus_no), c_ubyte(dev_addr)
+        )
 
         if ret != 0:
             self.libzatopos.ear_agent_delete(self.c_agent)
             raise ValueError()
-
-        self.sound_buf = np.ndarray(shape=(EAR_BUFFER_LEN,), dtype=np.uint16)
-        self.c_sound_buf = c_void_p(self.sound_buf.__array_interface__["data"][0])
 
 
     def __del__(self):
         self.libzatopos.ear_agent_delete(self.c_agent)
 
 
-    def read_sound(self, dtype=np.int16) -> np.ndarray:
-        ret = self.libzatopos.ear_agent_receive(self.c_agent)
+    def receive(self, sounds_buf:np.ndarray) -> None:
+        assert sounds_buf.nbytes % (EAR_WINDOW_LEN * EAR_NUM_MICS * 2) == 0
+
+        num_windows = int(sounds_buf.nbytes / (EAR_WINDOW_LEN * EAR_NUM_MICS * 2))
+
+        ret = self.libzatopos.ear_agent_receive(
+            self.c_agent,
+            c_void_p(sounds_buf.__array_interface__["data"][0]), c_ubyte(num_windows)
+        )
+
         if ret != 0:
             raise ValueError("%x" % ret)
-
-        self.libzatopos.ear_agent_copy_sound(self.c_agent, self.c_sound_buf)
-        sound = self.sound_buf.reshape((EAR_WINDOW_LEN, EAR_NUM_MICS)).T
-
-        return sound.astype(dtype)
+        return
 
 
 def get_ear_agent() -> EarAgent:

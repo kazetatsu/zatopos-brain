@@ -12,7 +12,6 @@ struct ear_agent{
     libusb_context *ctx;
     libusb_device *device;
     libusb_device_handle *handle;
-    unsigned short *sound_buf;
 };
 
 ear_agent_t *ear_agent_malloc(void) {
@@ -43,7 +42,6 @@ unsigned int ear_agent_init(ear_agent_t *agent, unsigned char bus_no, unsigned c
                 agent->ctx = ctx;
                 agent->device = device;
                 agent->handle = handle;
-                agent->sound_buf = (unsigned short*)malloc(EAR_BUFFER_SIZE);
                 libusb_free_device_list(list, 1);
             } else {
                 libusb_free_device_list(list, 1);
@@ -59,10 +57,6 @@ unsigned int ear_agent_init(ear_agent_t *agent, unsigned char bus_no, unsigned c
 }
 
 void ear_agent_delete(ear_agent_t *agent) {
-    if (agent->sound_buf != NULL) {
-        free(agent->sound_buf);
-    }
-
     if (agent->ctx != NULL) {
         libusb_close(agent->handle); // Internally, this function decrement the reference counter of agent->device
         libusb_exit(agent->ctx);
@@ -71,8 +65,13 @@ void ear_agent_delete(ear_agent_t *agent) {
     free(agent);
 }
 
-unsigned int ear_agent_receive(ear_agent_t *agent) {
+unsigned int ear_agent_receive(ear_agent_t *agent, unsigned char* sound_buf, unsigned char num_windows) {
     unsigned int ret = 0;
+    int actual_length;
+    unsigned short offset;
+    unsigned char cmd[2] = {0x01, num_windows};
+    unsigned char stat;
+    unsigned char *buf = sound_buf;
 
     int ret_intf = libusb_claim_interface(agent->handle, 0);
     if (ret_intf != 0) {
@@ -80,61 +79,51 @@ unsigned int ear_agent_receive(ear_agent_t *agent) {
         return ret;
     }
 
-    int actual_length;
-
     // Send commad to ask worker to send sound buffer
-    unsigned char cmd[] = {0x01};
-    int ret_cmd = libusb_bulk_transfer(agent->handle, LIBUSB_ENDPOINT_OUT | 1, cmd, 1, &actual_length, 1000);
+    int ret_cmd = libusb_bulk_transfer(agent->handle, LIBUSB_ENDPOINT_OUT | 1, cmd, 2, &actual_length, 1000);
     if (ret_cmd != 0) {
         libusb_release_interface(agent->handle, 0);
 
-        ret |= 0x01 << 24;
-        ret |= (unsigned int)(-1 * ret_cmd) << 16;
+        ret |= 0x01 << 28;
+        ret |= (unsigned int)(-1 * ret_cmd) << 20;
         ret |= actual_length;
         return ret;
     }
 
-    // Receive sound buffer
-    unsigned char *buf = (unsigned char*)agent->sound_buf;
-    unsigned short offset = 0;
-    do {
-        unsigned int data_size = EAR_BUFFER_SIZE - offset;
-        if (data_size > USB_MAX_DATA_SIZE) {
-            data_size = USB_MAX_DATA_SIZE;
-        }
+    for(unsigned int i = 0; i < num_windows; i++) {
+        // Receive sound
+        offset = 0;
+        do {
+            unsigned int data_size = EAR_WINDOW_BUF_SIZE - offset;
+            if (data_size > USB_MAX_DATA_SIZE) {
+                data_size = USB_MAX_DATA_SIZE;
+            }
 
-        int ret_data = libusb_bulk_transfer(
-            agent->handle,
-            LIBUSB_ENDPOINT_IN | 1,
-            buf,
-            data_size,
-            &actual_length,
-            2000
-        );
+            int ret_data = libusb_bulk_transfer(
+                agent->handle,
+                LIBUSB_ENDPOINT_IN | 1,
+                buf,
+                data_size,
+                &actual_length,
+                2000
+            );
 
-        if (ret_data != 0) {
-            libusb_release_interface(agent->handle, 0);
+            if (ret_data != 0) {
+                libusb_release_interface(agent->handle, 0);
 
-            ret |= 0x03 << 24;
-            ret |= (unsigned int)(-1 * ret_data) << 16;
-            ret |= offset + actual_length;
-            return ret;
-        }
+                ret |= 0x02 << 28;
+                ret |= (unsigned int)(-1 * ret_data) << 20;
+                ret |= i << 12;
+                ret |= offset + actual_length;
+                return ret;
+            }
 
-        // uint16_t *dat = (uint16_t*)buf;
-        // if (dat[0] & 0xf000) {
-        // }
-
-        buf += data_size;
-        offset += data_size;
-    } while (offset < EAR_BUFFER_SIZE);
+            buf += data_size;
+            offset += data_size;
+        } while (offset < EAR_WINDOW_BUF_SIZE);
+    }
 
     libusb_release_interface(agent->handle, 0);
 
-    return 0;
-}
-
-unsigned int ear_agent_copy_sound(ear_agent_t *agent, unsigned short *dst) {
-    memcpy(dst, agent->sound_buf, EAR_BUFFER_SIZE);
     return 0;
 }

@@ -19,12 +19,9 @@ def load_libzatopos() -> CDLL:
     # void ear_agent_delete(ear_agent_t *agent);
     libzatopos.ear_agent_delete.argtypes = (c_void_p,)
     libzatopos.ear_agent_delete.restype  = None
-    # unsigned int ear_agent_receive(ear_agent_t *agent);
-    libzatopos.ear_agent_receive.argtypes = (c_void_p,)
+    # unsigned int ear_agent_receive(ear_agent_t *agent, unsigned char* sound_buf, unsigned char num_windows);
+    libzatopos.ear_agent_receive.argtypes = (c_void_p, c_void_p, c_ubyte)
     libzatopos.ear_agent_receive.restype  = c_uint
-    # unsigned int ear_agent_copy_sound(ear_agent_t *agent, unsigned short *dst);
-    libzatopos.ear_agent_copy_sound.argtypes = (c_void_p, c_void_p)
-    libzatopos.ear_agent_copy_sound.restype  = c_uint
 
     # locator_t* locator_malloc(void)
     libzatopos.locator_malloc.argtypes = ()
