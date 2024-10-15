@@ -16,24 +16,24 @@ EAR_SAMPLING_RATE = 2000 # [Hz]
 EAR_WINDOW_TIME = EAR_WINDOW_LEN / EAR_SAMPLING_RATE
 
 
-class EarAgent:
+class EarDriver:
     def __init__(self, bus_no:int, dev_addr:int):
         self.libzatopos = load_libzatopos()
 
-        self.c_agent = self.libzatopos.ear_agent_malloc()
+        self.c_driver = self.libzatopos.ear_driver_malloc()
 
-        ret = self.libzatopos.ear_agent_init(
-            self.c_agent,
+        ret = self.libzatopos.ear_driver_init(
+            self.c_driver,
             c_ubyte(bus_no), c_ubyte(dev_addr)
         )
 
         if ret != 0:
-            self.libzatopos.ear_agent_delete(self.c_agent)
+            self.libzatopos.ear_driver_delete(self.c_driver)
             raise ValueError()
 
 
     def __del__(self):
-        self.libzatopos.ear_agent_delete(self.c_agent)
+        self.libzatopos.ear_driver_delete(self.c_driver)
 
 
     def receive(self, sounds_buf:np.ndarray) -> None:
@@ -41,8 +41,8 @@ class EarAgent:
 
         num_windows = int(sounds_buf.nbytes / (EAR_WINDOW_LEN * EAR_NUM_MICS * 2))
 
-        ret = self.libzatopos.ear_agent_receive(
-            self.c_agent,
+        ret = self.libzatopos.ear_driver_receive(
+            self.c_driver,
             c_void_p(sounds_buf.__array_interface__["data"][0]), c_ubyte(num_windows)
         )
 
@@ -51,7 +51,7 @@ class EarAgent:
         return
 
 
-def get_ear_agent() -> EarAgent:
+def get_ear_driver() -> EarDriver:
     ret_lsusb = subprocess.run("lsusb | grep kazetatsu", shell=True, stdout=subprocess.PIPE)
     if ret_lsusb.stdout is None:
         raise Exception("subprocess error")
@@ -64,4 +64,4 @@ def get_ear_agent() -> EarAgent:
     cs = ss[0].split(' ')
     bus_no = int(cs[1])
     dev_addr = int(cs[3][0:3])
-    return EarAgent(bus_no, dev_addr)
+    return EarDriver(bus_no, dev_addr)

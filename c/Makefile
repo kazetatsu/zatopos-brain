@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2024 ShinagwaKazemaru
 # SPDX-License-Identifier: MIT License
 
-LOCATOR_TYPE = cpu
-OBJS   = build/locator.o build/ear_agent.o
+MUSICAL_TYPE = cpu
+OBJS   = build/musical.o build/ear_driver.o
 TARGET = build/libzatopos.so
 
 all: $(TARGET)
@@ -10,14 +10,14 @@ all: $(TARGET)
 $(TARGET): $(OBJS)
 	gcc -shared -fPIC -o $@ $^ -lusb-1.0 -lm
 
-build/locator.o: build/locator_$(LOCATOR_TYPE).o
+build/musical.o: build/musical_$(MUSICAL_TYPE).o
 	ln -fs $(subst build/,,$<) $@
 
-build/locator_cpu.o: src/locator_cpu.c
+build/musical_cpu.o: src/musical_cpu.c
 	@mkdir -p build
 	gcc -o $@ -c $< -I./include
 
-build/ear_agent.o: src/ear_agent.c
+build/ear_driver.o: src/ear_driver.c
 	@mkdir -p build
 	gcc -o $@ -c $< -I/usr/include/libusb-1.0 -I./include
 

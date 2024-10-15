@@ -6,19 +6,19 @@
 #include <string.h>
 #include <libusb.h>
 
-#include "ear_agent.h"
+#include "ear_driver.h"
 
-struct ear_agent{
+struct ear_driver{
     libusb_context *ctx;
     libusb_device *device;
     libusb_device_handle *handle;
 };
 
-ear_agent_t *ear_agent_malloc(void) {
-    return calloc(1, sizeof(ear_agent_t));
+ear_driver_t *ear_driver_malloc(void) {
+    return calloc(1, sizeof(ear_driver_t));
 }
 
-unsigned int ear_agent_init(ear_agent_t *agent, unsigned char bus_no, unsigned char dev_addr) {
+unsigned int ear_driver_init(ear_driver_t *driver, unsigned char bus_no, unsigned char dev_addr) {
     libusb_context *ctx;
     libusb_device **list;
     struct libusb_device_descriptor desc;
@@ -36,12 +36,12 @@ unsigned int ear_agent_init(ear_agent_t *agent, unsigned char bus_no, unsigned c
         unsigned char addr = libusb_get_device_address(device);
 
         if (bus == bus_no && addr == dev_addr) {
-            int ret = libusb_open(device, &handle);  // Internally, this function decrement the reference counter of agent->device when success
+            int ret = libusb_open(device, &handle);  // Internally, this function decrement the reference counter of driver->device when success
 
             if (ret == 0) {
-                agent->ctx = ctx;
-                agent->device = device;
-                agent->handle = handle;
+                driver->ctx = ctx;
+                driver->device = device;
+                driver->handle = handle;
                 libusb_free_device_list(list, 1);
             } else {
                 libusb_free_device_list(list, 1);
@@ -56,16 +56,16 @@ unsigned int ear_agent_init(ear_agent_t *agent, unsigned char bus_no, unsigned c
     return (unsigned int)(-LIBUSB_ERROR_NO_DEVICE);
 }
 
-void ear_agent_delete(ear_agent_t *agent) {
-    if (agent->ctx != NULL) {
-        libusb_close(agent->handle); // Internally, this function decrement the reference counter of agent->device
-        libusb_exit(agent->ctx);
+void ear_driver_delete(ear_driver_t *driver) {
+    if (driver->ctx != NULL) {
+        libusb_close(driver->handle); // Internally, this function decrement the reference counter of driver->device
+        libusb_exit(driver->ctx);
     }
 
-    free(agent);
+    free(driver);
 }
 
-unsigned int ear_agent_receive(ear_agent_t *agent, unsigned char* sound_buf, unsigned char num_windows) {
+unsigned int ear_driver_receive(ear_driver_t *driver, unsigned char* sound_buf, unsigned char num_windows) {
     unsigned int ret = 0;
     int actual_length;
     unsigned short offset;
@@ -73,16 +73,16 @@ unsigned int ear_agent_receive(ear_agent_t *agent, unsigned char* sound_buf, uns
     unsigned char stat;
     unsigned char *buf = sound_buf;
 
-    int ret_intf = libusb_claim_interface(agent->handle, 0);
+    int ret_intf = libusb_claim_interface(driver->handle, 0);
     if (ret_intf != 0) {
         ret |= (unsigned int)(-1 * ret_intf);
         return ret;
     }
 
     // Send commad to ask worker to send sound buffer
-    int ret_cmd = libusb_bulk_transfer(agent->handle, LIBUSB_ENDPOINT_OUT | 1, cmd, 2, &actual_length, 1000);
+    int ret_cmd = libusb_bulk_transfer(driver->handle, LIBUSB_ENDPOINT_OUT | 1, cmd, 2, &actual_length, 1000);
     if (ret_cmd != 0) {
-        libusb_release_interface(agent->handle, 0);
+        libusb_release_interface(driver->handle, 0);
 
         ret |= 0x01 << 28;
         ret |= (unsigned int)(-1 * ret_cmd) << 20;
@@ -100,7 +100,7 @@ unsigned int ear_agent_receive(ear_agent_t *agent, unsigned char* sound_buf, uns
             }
 
             int ret_data = libusb_bulk_transfer(
-                agent->handle,
+                driver->handle,
                 LIBUSB_ENDPOINT_IN | 1,
                 buf,
                 data_size,
@@ -109,7 +109,7 @@ unsigned int ear_agent_receive(ear_agent_t *agent, unsigned char* sound_buf, uns
             );
 
             if (ret_data != 0) {
-                libusb_release_interface(agent->handle, 0);
+                libusb_release_interface(driver->handle, 0);
 
                 ret |= 0x02 << 28;
                 ret |= (unsigned int)(-1 * ret_data) << 20;
@@ -123,7 +123,7 @@ unsigned int ear_agent_receive(ear_agent_t *agent, unsigned char* sound_buf, uns
         } while (offset < EAR_WINDOW_BUF_SIZE);
     }
 
-    libusb_release_interface(agent->handle, 0);
+    libusb_release_interface(driver->handle, 0);
 
     return 0;
 }

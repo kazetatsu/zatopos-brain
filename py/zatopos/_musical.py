@@ -5,10 +5,10 @@ from ctypes import *
 
 import numpy as np
 
-from ._ear_agent import EAR_WINDOW_LEN, EAR_WINDOW_TIME, EAR_NUM_MICS
+from ._ear_driver import EAR_WINDOW_LEN, EAR_WINDOW_TIME, EAR_NUM_MICS
 from ._load_lib import load_libzatopos
 
-class Locator:
+class Musical:
     def __init__(self,
         resolution:tuple[int,int]=(8,8),
         distance:tuple[float,float]=(10.0,10.0),
@@ -16,17 +16,17 @@ class Locator:
     ):
         self.libzatopos = load_libzatopos()
 
-        self.c_locator:c_void_p = self.libzatopos.locator_malloc()
-        self.libzatopos.locator_init(self.c_locator)
+        self.c_musical:c_void_p = self.libzatopos.musical_malloc()
+        self.libzatopos.musical_init(self.c_musical)
 
         self.resolution = resolution
-        self.libzatopos.locator_set_resolution(
-            self.c_locator,
+        self.libzatopos.musical_set_resolution(
+            self.c_musical,
             c_int(resolution[0]), c_int(resolution[1])
         )
 
-        self.libzatopos.locator_set_distance(
-            self.c_locator,
+        self.libzatopos.musical_set_distance(
+            self.c_musical,
             c_float(distance[0]), c_float(distance[1])
         )
 
@@ -35,18 +35,18 @@ class Locator:
             freq = freq[freq_filter]
         else:
             freq = freq[1:np.uint16(np.ceil(EAR_WINDOW_LEN/2))]
-        self.libzatopos.locator_set_frequency(
-            self.c_locator,
+        self.libzatopos.musical_set_frequency(
+            self.c_musical,
             c_void_p(freq.__array_interface__["data"][0]),
             c_int(freq.shape[0])
         )
 
 
     def __del__(self):
-        self.libzatopos.locator_delete(self.c_locator)
+        self.libzatopos.musical_delete(self.c_musical)
 
 
-    def locate(self, signal_spaces:np.ndarray) -> np.ndarray:
+    def search(self, signal_spaces:np.ndarray) -> np.ndarray:
         shape = signal_spaces.shape
         assert len(shape) == 3
         assert shape[1] == EAR_NUM_MICS
@@ -56,8 +56,8 @@ class Locator:
         result = np.zeros(shape=(self.resolution[0], self.resolution[1]), dtype=np.float32)
 
         # BUG: ここでresultがnanまたはinfの行列になっちゃう
-        self.libzatopos.locator_locate(
-            self.c_locator,
+        self.libzatopos.musical_search(
+            self.c_musical,
             c_void_p(signal_spaces.__array_interface__["data"][0]),
             c_void_p(result.__array_interface__["data"][0])
         )

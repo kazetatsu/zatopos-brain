@@ -10,39 +10,39 @@ def load_libzatopos() -> CDLL:
 
     libzatopos = cdll.LoadLibrary(path)
 
-    # ear_agent_t* ear_agent_malloc();
-    libzatopos.ear_agent_malloc.argtypes = ()
-    libzatopos.ear_agent_malloc.restype  = c_void_p
-    # unsigned int ear_agent_init(ear_agent_t *agent, unsigned char bus_no, unsigned char dev_addr);
-    libzatopos.ear_agent_init.argtypes = (c_void_p, c_ubyte, c_ubyte)
-    libzatopos.ear_agent_init.restype  = c_uint
-    # void ear_agent_delete(ear_agent_t *agent);
-    libzatopos.ear_agent_delete.argtypes = (c_void_p,)
-    libzatopos.ear_agent_delete.restype  = None
-    # unsigned int ear_agent_receive(ear_agent_t *agent, unsigned char* sound_buf, unsigned char num_windows);
-    libzatopos.ear_agent_receive.argtypes = (c_void_p, c_void_p, c_ubyte)
-    libzatopos.ear_agent_receive.restype  = c_uint
+    # ear_driver_t* ear_driver_malloc();
+    libzatopos.ear_driver_malloc.argtypes = ()
+    libzatopos.ear_driver_malloc.restype  = c_void_p
+    # unsigned int ear_driver_init(ear_driver_t *driver, unsigned char bus_no, unsigned char dev_addr);
+    libzatopos.ear_driver_init.argtypes = (c_void_p, c_ubyte, c_ubyte)
+    libzatopos.ear_driver_init.restype  = c_uint
+    # void ear_driver_delete(ear_driver_t *driver);
+    libzatopos.ear_driver_delete.argtypes = (c_void_p,)
+    libzatopos.ear_driver_delete.restype  = None
+    # unsigned int ear_driver_receive(ear_driver_t *driver, unsigned char* sound_buf, unsigned char num_windows);
+    libzatopos.ear_driver_receive.argtypes = (c_void_p, c_void_p, c_ubyte)
+    libzatopos.ear_driver_receive.restype  = c_uint
 
-    # locator_t* locator_malloc(void)
-    libzatopos.locator_malloc.argtypes = ()
-    libzatopos.locator_malloc.restype  = c_void_p
-    # unsigned int locator_init(locator_t* locator)
-    libzatopos.locator_init.argtypes = (c_void_p,)
-    libzatopos.locator_init.restype  = c_uint
-    # void locator_delete(locator_t* locator)
-    libzatopos.locator_delete.argtypes = (c_void_p,)
-    libzatopos.locator_delete.restype  = None
-    # unsigned int locator_set_frequency(locator_t* locator, float* freq, int len)
-    libzatopos.locator_set_frequency.argtypes = (c_void_p, c_void_p, c_int)
-    libzatopos.locator_set_frequency.restype  = c_uint
-    # unsigned int locator_set_resolution(locator_t* locator, int x, int y)
-    libzatopos.locator_set_resolution.argtypes = (c_void_p, c_int, c_int)
-    libzatopos.locator_set_resolution.restype  = c_uint
-    # unsigned int locator_set_distance(locator_t* locator, float x, float y)
-    libzatopos.locator_set_distance.argtypes = (c_void_p, c_float, c_float)
-    libzatopos.locator_set_distance.restype  = c_uint
-    # unsigned int locator_locate(locator_t* locator, float *E, float *result)
-    libzatopos.locator_locate.argtypes = (c_void_p, c_void_p, c_void_p)
-    libzatopos.locator_locate.restype  = c_uint
+    # musical_t* musical_malloc(void)
+    libzatopos.musical_malloc.argtypes = ()
+    libzatopos.musical_malloc.restype  = c_void_p
+    # unsigned int musical_init(musical_t* music)
+    libzatopos.musical_init.argtypes = (c_void_p,)
+    libzatopos.musical_init.restype  = c_uint
+    # void musical_delete(musical_t* music)
+    libzatopos.musical_delete.argtypes = (c_void_p,)
+    libzatopos.musical_delete.restype  = None
+    # unsigned int musical_set_frequency(musical_t* music, float* freq, int len)
+    libzatopos.musical_set_frequency.argtypes = (c_void_p, c_void_p, c_int)
+    libzatopos.musical_set_frequency.restype  = c_uint
+    # unsigned int musical_set_resolution(musical_t* music, int x, int y)
+    libzatopos.musical_set_resolution.argtypes = (c_void_p, c_int, c_int)
+    libzatopos.musical_set_resolution.restype  = c_uint
+    # unsigned int musical_set_distance(musical_t* music, float x, float y)
+    libzatopos.musical_set_distance.argtypes = (c_void_p, c_float, c_float)
+    libzatopos.musical_set_distance.restype  = c_uint
+    # unsigned int musical_search(musical_t* music, float *E, float *result)
+    libzatopos.musical_search.argtypes = (c_void_p, c_void_p, c_void_p)
+    libzatopos.musical_search.restype  = c_uint
 
     return libzatopos

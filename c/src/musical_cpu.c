@@ -6,7 +6,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "locator.h"
+#include "musical.h"
 
 static const float q[EAR_NUM_MICS - 1][2] = {
     { 0.5f,  0.86f},
@@ -16,7 +16,7 @@ static const float q[EAR_NUM_MICS - 1][2] = {
     { 0.5f, -0.86f},
 };
 
-struct locator {
+struct musical {
     int res_x;
     int res_y;
     float dist_x;
@@ -25,47 +25,47 @@ struct locator {
     int freq_len;
 };
 
-locator_t* locator_malloc(void) {
-    return (locator_t*)calloc(1, sizeof(locator_t));
+musical_t* musical_malloc(void) {
+    return (musical_t*)calloc(1, sizeof(musical_t));
 }
 
-unsigned int locator_init(locator_t* locator) {
+unsigned int musical_init(musical_t* music) {
     // printf("initialized\n");
     return 0;
 }
 
-void locator_delete(locator_t* locator) {
-    if (locator->freq != NULL)
-        free(locator->freq);
-    free(locator);
+void musical_delete(musical_t* music) {
+    if (music->freq != NULL)
+        free(music->freq);
+    free(music);
     // printf("deleted\n");
 }
 
-unsigned int locator_set_frequency(locator_t* locator, float* freq, int len) {
-    locator->freq = freq;
-    locator->freq_len = len;
-    locator->freq = (float*)malloc(len * sizeof(float));
+unsigned int musical_set_frequency(musical_t* music, float* freq, int len) {
+    music->freq = freq;
+    music->freq_len = len;
+    music->freq = (float*)malloc(len * sizeof(float));
     for (int f = 0; f < len; f++)
-        locator->freq[f] = freq[f];
-    // printf("set freq: len=%d\n", locator->freq_len);
+        music->freq[f] = freq[f];
+    // printf("set freq: len=%d\n", music->freq_len);
     return 0;
 }
 
-unsigned int locator_set_resolution(locator_t* locator, int x, int y) {
-    locator->res_x = x;
-    locator->res_y = y;
-    // printf("set resolution: x=%d, y=%d\n", locator->res_x, locator->res_y);
+unsigned int musical_set_resolution(musical_t* music, int x, int y) {
+    music->res_x = x;
+    music->res_y = y;
+    // printf("set resolution: x=%d, y=%d\n", music->res_x, music->res_y);
     return 0;
 }
 
-unsigned int locator_set_distance(locator_t* locator, float x, float y) {
-    locator->dist_x = x;
-    locator->dist_y = y;
-    // printf("set distance: x=%f, y=%f\n", locator->dist_x, locator->dist_y);
+unsigned int musical_set_distance(musical_t* music, float x, float y) {
+    music->dist_x = x;
+    music->dist_y = y;
+    // printf("set distance: x=%f, y=%f\n", music->dist_x, music->dist_y);
     return 0;
 }
 
-unsigned int locator_locate(locator_t* locator, float *E, float *result) {
+unsigned int musical_search(musical_t* music, float *E, float *result) {
     // steering vector
     float v_re[EAR_NUM_MICS];
     float v_im[EAR_NUM_MICS];
@@ -73,20 +73,20 @@ unsigned int locator_locate(locator_t* locator, float *E, float *result) {
     int stride_f = EAR_NUM_MICS * EAR_NUM_MICS * 2;
     int stride_c = EAR_NUM_MICS * 2;
 
-    for (int ix = 0; ix < locator->res_x; ix++) {
-        for (int iy = 0; iy < locator->res_y; iy++) {
+    for (int ix = 0; ix < music->res_x; ix++) {
+        for (int iy = 0; iy < music->res_y; iy++) {
             // calculate p: position
-            float px = (float)ix - (float)locator->res_x / 2.0f;
-            float py = (float)iy - (float)locator->res_y / 2.0f;
-            float coef = sqrtf(locator->res_x * locator->res_x + locator->res_y * locator->res_y) / 2.0f;
+            float px = (float)ix - (float)music->res_x / 2.0f;
+            float py = (float)iy - (float)music->res_y / 2.0f;
+            float coef = sqrtf(music->res_x * music->res_x + music->res_y * music->res_y) / 2.0f;
             px /= coef;
             py /= coef;
-            px *= locator->dist_x;
-            py *= locator->dist_y;
+            px *= music->dist_x;
+            py *= music->dist_y;
 
-            for (int i = 0; i < locator->freq_len; i++) {
+            for (int i = 0; i < music->freq_len; i++) {
                 // calculate v: steering vector
-                coef = locator->freq[i] * 0.001109 / sqrtf(px * px + py * py + 6.25f);
+                coef = music->freq[i] * 0.001109 / sqrtf(px * px + py * py + 6.25f);
                 float theta = coef * px;
                 v_re[0] = cosf(theta);
                 v_im[0] = sinf(theta);
@@ -112,7 +112,7 @@ unsigned int locator_locate(locator_t* locator, float *E, float *result) {
                 }
 
                 // calculate average
-                result[ix * locator->res_y + iy] += res;
+                result[ix * music->res_y + iy] += res;
             }
         }
     }

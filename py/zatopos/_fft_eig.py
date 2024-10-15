@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from ._ear_agent import EAR_WINDOW_LEN, EAR_WINDOW_TIME
+from ._ear_driver import EAR_WINDOW_LEN, EAR_WINDOW_TIME
 
 def get_signal_spaces(sounds:np.ndarray, freq_filter:np.ndarray = None):
     assert len(sounds.shape) == 3
