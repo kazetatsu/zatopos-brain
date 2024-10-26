@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     fig = plt.figure()
     x = np.arange(SOUND_LEN)
-    y = np.ndarray((SOUND_LEN, EAR_NUM_MICS), dtype=np.int16)
+    y = np.ndarray((RECEIVE_TIMES, EAR_WINDOW_LEN, EAR_NUM_MICS), dtype=np.int16)
 
     def update_func(frame, x, y):
         plt.cla()
@@ -25,7 +25,7 @@ if __name__ == "__main__":
         driver.receive(y)
 
         for ch in range(EAR_NUM_MICS):
-            plt.plot(x, y[:,ch])
+            plt.plot(x, y.reshape(SOUND_LEN, EAR_NUM_MICS)[:,ch])
 
     fanim = matplotlib.animation.FuncAnimation(
         fig=fig,
