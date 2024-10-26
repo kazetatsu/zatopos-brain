@@ -5,7 +5,9 @@ import numpy as np
 
 from ._ear_driver import EAR_WINDOW_LEN, EAR_WINDOW_TIME
 
-def get_signal_spaces(sounds:np.ndarray, freq_filter:np.ndarray = None):
+FREQ_TO_INDEX = EAR_WINDOW_LEN * EAR_WINDOW_LEN / EAR_WINDOW_TIME
+
+def fft_eig(sounds:np.ndarray, min_freq_index:int=None, max_freq_index:int=None):
     assert len(sounds.shape) == 3
 
     X = np.fft.fft(sounds).astype(np.complex64)
@@ -13,10 +15,8 @@ def get_signal_spaces(sounds:np.ndarray, freq_filter:np.ndarray = None):
     #   type: np.ndarray
     #     shape: (number of samples, number of microphones, SOUND_DEPTH)
     #     dtype: np.complex64
-    if freq_filter is not None:
-        X = X[:,:,freq_filter]
-    else:
-        X = X[:, :, 1:np.uint16(np.ceil(X.shape[2] / 2))]
+    min_f, max_f = _correct_freq_index(min_freq_index, max_freq_index)
+    X = X[:,:,min_f:max_f+1]
 
     R = np.einsum(
         "kif,kjf->kfij",
@@ -24,24 +24,38 @@ def get_signal_spaces(sounds:np.ndarray, freq_filter:np.ndarray = None):
     )
     R = np.mean(R, axis=0)
 
-    _, eigvec = np.linalg.eigh(R)
-    eigvec = eigvec[:, ::-1, :] # descending order of eigen value
+    eigval, eigvec = np.linalg.eigh(R)
+    eigval = eigval[:, ::-1]    # Descending order
+    eigvec = eigvec[:, ::-1, :] # Same order as eigval
 
-    return eigvec.copy()
+    return eigval.copy(), eigvec.copy()
 
 
-def get_freq_filter(min_freq:float, max_freq:float):
-    coef = EAR_WINDOW_LEN * EAR_WINDOW_LEN / EAR_WINDOW_TIME
+def _correct_freq_index(min_freq_index:int|None, max_freq_index:int|None) -> tuple[int,int]:
+    min_f = 1 # default value
+    max_f = int(EAR_WINDOW_LEN / 2) # default value
+    if min_freq_index is not None and 1 <= min_freq_index < max_f:
+        min_f = min_freq_index
+    if max_freq_index is not None and 1 <= max_freq_index < max_f:
+        max_f = max_freq_index
+    if max_f < min_f:
+        raise ValueError("Incorrect frequency index")
+    return min_f, max_f
 
-    min_f = np.max(
-        np.ceil(coef * min_freq),
-        0
+
+def min_freq_to_index(freq:float) -> int:
+    i = np.max(
+        np.ceil(FREQ_TO_INDEX * freq),
+        1
     )
-    max_f = np.min(
-        np.floor(coef * max_freq),
+    i = np.min(i, np.ceil((EAR_WINDOW_LEN - 1)/2))
+    return int(i)
+
+
+def max_freq_to_index(freq:float) -> int:
+    i = np.min(
+        np.floor(FREQ_TO_INDEX * freq),
         np.ceil((EAR_WINDOW_LEN - 1)/2)
     )
-
-    assert min_f <= max_f
-
-    return np.arange(min_f, max_f + 1)
+    i = np.max(i, 1)
+    return int(i)
