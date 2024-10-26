@@ -19,6 +19,6 @@ void musical_delete(musical_t* music);
 unsigned int musical_set_frequency(musical_t* music, float* freq, int len);
 unsigned int musical_set_resolution(musical_t* music, int x, int y);
 unsigned int musical_set_distance(musical_t* music, float x, float y);
-unsigned int musical_search(musical_t* music, float *E, float *result);
+unsigned int musical_search(musical_t* music, float *eig_vecs, float *result);
 
 #endif

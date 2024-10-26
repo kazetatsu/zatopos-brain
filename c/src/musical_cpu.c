@@ -47,7 +47,6 @@ unsigned int musical_set_frequency(musical_t* music, float* freq, int len) {
     music->freq = (float*)malloc(len * sizeof(float));
     for (int f = 0; f < len; f++)
         music->freq[f] = freq[f];
-    // printf("set freq: len=%d\n", music->freq_len);
     return 0;
 }
 
@@ -65,28 +64,27 @@ unsigned int musical_set_distance(musical_t* music, float x, float y) {
     return 0;
 }
 
-unsigned int musical_search(musical_t* music, float *E, float *result) {
+unsigned int musical_search(musical_t* music, float *eig_vecs, float *result) {
     // steering vector
     float v_re[EAR_NUM_MICS];
     float v_im[EAR_NUM_MICS];
 
-    int stride_f = EAR_NUM_MICS * EAR_NUM_MICS * 2;
-    int stride_c = EAR_NUM_MICS * 2;
+    int stride_r_if = music->res_x * music->res_y; // result, index of frequency
+    int stride_r_iy = music->res_x;
+    int stride_e_if = EAR_NUM_MICS * EAR_NUM_MICS * 2; // eigen vector, index of frequency
+    int stride_e_c = EAR_NUM_MICS * 2;
 
     for (int ix = 0; ix < music->res_x; ix++) {
         for (int iy = 0; iy < music->res_y; iy++) {
             // calculate p: position
-            float px = (float)ix - (float)music->res_x / 2.0f;
-            float py = (float)iy - (float)music->res_y / 2.0f;
-            float coef = sqrtf(music->res_x * music->res_x + music->res_y * music->res_y) / 2.0f;
-            px /= coef;
-            py /= coef;
-            px *= music->dist_x;
-            py *= music->dist_y;
+            float px = (float)(2 * ix - music->res_x + 1) / 2.0f;
+            float py = (float)(2 * iy - music->res_y + 1) / 2.0f;
+            px *= music->dist_x / (float)music->res_x;
+            py *= music->dist_y / (float)music->res_y;
 
-            for (int i = 0; i < music->freq_len; i++) {
+            for (int i_f = 0; i_f < music->freq_len; i_f++) {
                 // calculate v: steering vector
-                coef = music->freq[i] * 0.001109 / sqrtf(px * px + py * py + 6.25f);
+                float coef = music->freq[i_f] * 0.001109 / sqrtf(px * px + py * py + 6.25f);
                 float theta = coef * px;
                 v_re[0] = cosf(theta);
                 v_im[0] = sinf(theta);
@@ -104,15 +102,14 @@ unsigned int musical_search(musical_t* music, float *E, float *result) {
                     u_re = 0.0f;
                     u_im = 0.0f;
                     for (unsigned char r = 0; r < EAR_NUM_MICS; r++) {
-                        int pibot = i * stride_f + c * stride_c + r * 2;
-                        u_re += v_re[r] * E[pibot    ] - v_im[r] * E[pibot + 1];
-                        u_im += v_re[r] * E[pibot + 1] + v_im[r] * E[pibot    ];
+                        int pivot = i_f * stride_e_if + c * stride_e_c + r * 2;
+                        u_re += v_re[r] * eig_vecs[pivot    ] - v_im[r] * eig_vecs[pivot + 1];
+                        u_im += v_re[r] * eig_vecs[pivot + 1] + v_im[r] * eig_vecs[pivot    ];
                     }
                     res += u_re * u_re + u_im * u_im;
                 }
 
-                // calculate average
-                result[ix * music->res_y + iy] += res;
+                result[i_f * stride_r_if + iy * stride_r_iy+ ix] = res;
             }
         }
     }
