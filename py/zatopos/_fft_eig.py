@@ -33,7 +33,7 @@ def fft_eig(sounds:np.ndarray, min_freq_index:int=None, max_freq_index:int=None)
 
 def _correct_freq_index(min_freq_index:int|None, max_freq_index:int|None) -> tuple[int,int]:
     min_f = 1 # default value
-    max_f = int(EAR_WINDOW_LEN / 2) # default value
+    max_f = int(EAR_WINDOW_LEN / 2 - 1) # default value
     if min_freq_index is not None and 1 <= min_freq_index < max_f:
         min_f = min_freq_index
     if max_freq_index is not None and 1 <= max_freq_index < max_f:
