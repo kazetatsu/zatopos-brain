@@ -94,16 +94,11 @@ unsigned int ear_driver_receive(ear_driver_t *driver, unsigned char* sound_buf, 
         // Receive sound
         offset = 0;
         do {
-            unsigned int data_size = EAR_WINDOW_BUF_SIZE - offset;
-            if (data_size > USB_MAX_DATA_SIZE) {
-                data_size = USB_MAX_DATA_SIZE;
-            }
-
             int ret_data = libusb_bulk_transfer(
                 driver->handle,
                 LIBUSB_ENDPOINT_IN | 1,
                 buf,
-                data_size,
+                USB_MAX_DATA_SIZE,
                 &actual_length,
                 2000
             );
@@ -118,8 +113,8 @@ unsigned int ear_driver_receive(ear_driver_t *driver, unsigned char* sound_buf, 
                 return ret;
             }
 
-            buf += data_size;
-            offset += data_size;
+            buf += USB_MAX_DATA_SIZE;
+            offset += USB_MAX_DATA_SIZE;
         } while (offset < EAR_WINDOW_BUF_SIZE);
     }
 

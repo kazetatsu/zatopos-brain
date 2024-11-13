@@ -6,7 +6,7 @@
 
 #include "consts.h"
 
-#define USB_MAX_DATA_SIZE 60
+#define USB_MAX_DATA_SIZE 64
 
 struct ear_driver;
 typedef struct ear_driver ear_driver_t;
